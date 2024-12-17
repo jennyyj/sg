@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import type { NextRequest } from 'next/server';
 
 const prisma = new PrismaClient();
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const { id } = params; // Correctly destructure the ID
+// Correctly typed RouteHandlerContext for Next.js App Router
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params; // Destructure the route parameter 'id'
 
   try {
     // Fetch the job with shift details using Prisma
     const job = await prisma.job.findUnique({
-      where: { id }, // Use the destructured ID
-      include: { shift: true },
+      where: { id }, // Correctly pass the ID
+      include: { shift: true }, // Include associated shift details
     });
 
     // Handle the case where the job is not found
