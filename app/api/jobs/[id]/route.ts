@@ -3,16 +3,13 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET(
-  request: Request,
-  context: { params: { id: string } }
-) {
-  const { params } = context;
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  const { id } = params; // Correctly destructure the ID
 
   try {
     // Fetch the job with shift details using Prisma
     const job = await prisma.job.findUnique({
-      where: { id: params.id },
+      where: { id }, // Use the destructured ID
       include: { shift: true },
     });
 
