@@ -3,6 +3,7 @@
     "short_name": "ShiftGrab",
     "description": "ShiftGrab - Claim and Manage Shifts Easily",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#3a73c1",
