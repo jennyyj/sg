@@ -65,7 +65,7 @@ const claimerPhone = phoneNumbers.find((phone) => phone.name === workerName);
 if (claimerPhone) {
   const formattedDate = formatDate(job.shift?.date || ''); // Ensure date is formatted
   const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
-  const thankYouLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/thank-you/${jobId}`;
+  const thankYouLink = `${process.env.FRONTEND_URL || '${baseUrl}/thank-you/${jobId}`;
 
   await fetch('https://textbelt.com/text', {
     method: 'POST',

@@ -4,6 +4,9 @@ import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 
+const baseUrl =
+  process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;
+
 type JobRequest = {
   businessName: string;
   jobDescription?: string;
@@ -110,14 +113,14 @@ export async function POST(request: Request) {
     const formattedTime = `${formatTime(shift.startTime)} - ${formatTime(shift.endTime)}`;
 
     const smsPromises = userPhoneNumbers.map(async (phone) => {
-      const optOutLink = `http://localhost:3000/opt-out?number=${phone.number}`;
+      const optOutLink = `${baseUrl}/opt-out?number=${phone.number}`;
       const smsMessage = `${businessName}
 New ${shiftType} Available 
 Date: ${formattedDate} 
 Time: ${formattedTime} 
 Category: ${category}
 ${jobDescription || ''}
-Claim the shift: http://localhost:3000/claim-shift/${job.id}
+Claim the shift: ${baseUrl}/claim-shift/${job.id}
 
 Want to opt out of these messages? Press here: ${optOutLink}`;
 
