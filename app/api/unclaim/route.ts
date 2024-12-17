@@ -44,9 +44,6 @@ const formatTime = (time: string) => {
   return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
 };
 
-    // Generate the claim link
-    const claimLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/claim-shift/${jobId}`;
-
     // Retrieve phone numbers in the same category
     const phoneNumbers = await prisma.phoneNumber.findMany({
       where: {
