@@ -1,20 +1,31 @@
-import type { NextConfig } from 'next';
+import { NextConfig } from 'next';
 import withPWA from 'next-pwa';
 
-const nextConfig: NextConfig = withPWA ({
+const isProduction = process.env.NODE_ENV === 'production';
+
+const nextConfig: NextConfig = withPWA({
   pwa: {
     dest: 'public', // Output folder for the service worker
-    register: true, // Auto-register the service worker
+    register: true, // Automatically register the service worker
     skipWaiting: true, // Instantly update the app after changes
-    disable: process.env.NODE_ENV === 'development', // Disable in development
+    disable: !isProduction, // Disable PWA in non-production environments
   },
-  // Enable production builds to ignore TypeScript errors
+  // Resolve Prisma Client issue with Vercel
+  experimental: {
+    forceSwcTransforms: true,
+  },
+  // Suppress TypeScript build errors in production
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: isProduction,
   },
-  // Enable production builds to ignore ESLint errors
+  // Suppress ESLint build errors in production
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: isProduction,
+  },
+  // Ensure the correct base URL for your environment
+  env: {
+    NEXT_PUBLIC_BASE_URL:
+      process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`,
   },
 });
 
