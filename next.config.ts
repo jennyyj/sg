@@ -5,10 +5,10 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 const nextConfig: NextConfig = withPWA({
   pwa: {
-    dest: 'public', // Output folder for the service worker
-    register: true, // Automatically register the service worker
-    skipWaiting: true, // Instantly update the app after changes
-    disable: !isProduction, // Disable PWA in non-production environments
+    dest: 'public', 
+    register: true, 
+    skipWaiting: true, 
+    disable: !isProduction, 
   },
   // Resolve Prisma Client issue with Vercel
   experimental: {
