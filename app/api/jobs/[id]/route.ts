@@ -3,10 +3,11 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+interface Params {
+  params: { id: string };
+}
+
+export async function GET(request: Request, { params }: Params) {
   try {
     // Fetch the job with shift details using Prisma
     const job = await prisma.job.findUnique({
@@ -34,4 +35,3 @@ export async function GET(
     );
   }
 }
-
