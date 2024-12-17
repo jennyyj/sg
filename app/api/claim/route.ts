@@ -3,16 +3,17 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const baseUrl =
-  process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;
+// Use dynamic base URL based on environment
+const baseUrl = process.env.FRONTEND_URL || `https://${process.env.VERCEL_URL}`;
 
 export async function POST(request: Request) {
   try {
     const { jobId, workerName } = await request.json();
 
+    // Find the job with shift details
     const job = await prisma.job.findUnique({
       where: { id: jobId },
-      include: { shift: true }, 
+      include: { shift: true },
     });
 
     if (!job) {
@@ -34,25 +35,24 @@ export async function POST(request: Request) {
     });
 
     // Helper function to format date
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-};
+    const formatDate = (date: string) => {
+      return new Date(date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    };
 
-// Helper function to format time
-const formatTime = (time: string) => {
-  const [hours, minutes] = time.split(':').map(Number);
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const formattedHours = hours % 12 || 12; // Convert to 12-hour format
-  return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-};
+    // Helper function to format time
+    const formatTime = (time: string) => {
+      const [hours, minutes] = time.split(':').map(Number);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = hours % 12 || 12; // Convert to 12-hour format
+      return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    };
 
-
-const thankYouLink = `${process.env.FRONTEND_URL || baseUrl}/thank-you/${jobId}`;
+    const thankYouLink = `${baseUrl}/thank-you/${jobId}`;
 
     // Retrieve phone numbers in the same category
     const phoneNumbers = await prisma.phoneNumber.findMany({
@@ -62,50 +62,49 @@ const thankYouLink = `${process.env.FRONTEND_URL || baseUrl}/thank-you/${jobId}`
     });
 
     // Send personalized SMS to the claimer
-    // Send personalized SMS to the claimer
-const claimerPhone = phoneNumbers.find((phone) => phone.name === workerName);
+    const claimerPhone = phoneNumbers.find((phone) => phone.name === workerName);
 
-if (claimerPhone) {
-  const formattedDate = formatDate(job.shift?.date || ''); // Ensure date is formatted
-  const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
+    if (claimerPhone) {
+      const formattedDate = formatDate(job.shift?.date || '');
+      const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
 
-
-  await fetch('https://textbelt.com/text', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      phone: claimerPhone.number,
-      message: `Thank you for claiming the job for ${job.businessName} on ${formattedDate} from ${formattedTime}. Need to unclaim? Unclaim the shift here: ${thankYouLink}`,
-      key: process.env.TEXTBELT_API_KEY,
-    }),
-  });
-}
-
+      await fetch('https://textbelt.com/text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: claimerPhone.number,
+          message: `Thank you for claiming the job for ${job.businessName} on ${formattedDate} from ${formattedTime}. Need to unclaim? Unclaim the shift here: ${thankYouLink}`,
+          key: process.env.TEXTBELT_API_KEY,
+        }),
+      });
+    }
 
     // Send general notification to other phone numbers in the category
-const othersPromises = phoneNumbers
-.filter((phone) => phone.name !== workerName) // Exclude the claimer
-.map(async (phone) => {
-  const formattedDate = formatDate(job.shift?.date);
-  const formattedTime = `${formatTime(job.shift?.startTime)} - ${formatTime(job.shift?.endTime)}`;
+    const othersPromises = phoneNumbers
+      .filter((phone) => phone.name !== workerName)
+      .map(async (phone) => {
+        const formattedDate = formatDate(job.shift?.date || '');
+        const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
 
-  const message = `${workerName} has claimed the shift for ${job.businessName} on ${formattedDate} from ${formattedTime}.`;
+        const message = `${workerName} has claimed the shift for ${job.businessName} on ${formattedDate} from ${formattedTime}.`;
 
-  await fetch('https://textbelt.com/text', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      phone: phone.number,
-      message,
-      key: process.env.TEXTBELT_API_KEY,
-    }),
-  });
-});
-
+        await fetch('https://textbelt.com/text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: phone.number,
+            message,
+            key: process.env.TEXTBELT_API_KEY,
+          }),
+        });
+      });
 
     await Promise.all(othersPromises);
 
-    return NextResponse.json({ message: 'Shift successfully claimed', job: updatedJob });
+    return NextResponse.json({
+      message: 'Shift successfully claimed',
+      job: updatedJob,
+    });
   } catch (error) {
     console.error('Error claiming job:', error);
     return NextResponse.json({ error: 'Failed to claim job' }, { status: 500 });
