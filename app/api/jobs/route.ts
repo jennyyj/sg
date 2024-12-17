@@ -2,7 +2,15 @@ import { NextResponse } from 'next/server';
 import { PrismaClient, Prisma } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 
-const prisma = new PrismaClient();
+const prisma =
+  (global as any).prisma ||
+  new PrismaClient({
+    log: ['query'], // Optional: Logs SQL queries
+  });
+
+if (process.env.NODE_ENV !== 'production') {
+  (global as any).prisma = prisma;
+}
 
 const baseUrl =
   process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;

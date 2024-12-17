@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const prisma =
+  (global as any).prisma ||
+  new PrismaClient({
+    log: ['query'], // Optional: Logs SQL queries
+  });
+
+if (process.env.NODE_ENV !== 'production') {
+  (global as any).prisma = prisma;
+}
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/ban-ts-comment */

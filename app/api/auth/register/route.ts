@@ -2,7 +2,15 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+const prisma =
+  (global as any).prisma ||
+  new PrismaClient({
+    log: ['query'], // Optional: Logs SQL queries
+  });
+
+if (process.env.NODE_ENV !== 'production') {
+  (global as any).prisma = prisma;
+}
 
 export async function POST(request: Request) {
   try {

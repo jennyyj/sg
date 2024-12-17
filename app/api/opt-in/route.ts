@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server'; // Import NextResponse
 import { PrismaClient } from '@prisma/client'; // Import PrismaClient
 
-const prisma = new PrismaClient(); // Create an instance of PrismaClient
+const prisma =
+  (global as any).prisma ||
+  new PrismaClient({
+    log: ['query'], // Optional: Logs SQL queries
+  });
+
+if (process.env.NODE_ENV !== 'production') {
+  (global as any).prisma = prisma;
+}
 
 export async function POST(request: Request) {
   try {
