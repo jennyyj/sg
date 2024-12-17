@@ -1,0 +1,22 @@
+{
+    "name": "ShiftGrab",
+    "short_name": "ShiftGrab",
+    "description": "ShiftGrab - Claim and Manage Shifts Easily",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3a73c1",
+    "icons": [
+      {
+        "src": "/icons/C.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/icons/small.PNG",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
+  
