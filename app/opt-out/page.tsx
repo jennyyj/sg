@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function OptOutPage() {
+function OptOutForm() {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
   const [message, setMessage] = useState('');
@@ -29,7 +29,7 @@ export default function OptOutPage() {
       const data = await response.json();
       if (response.ok) {
         setMessage('You have successfully opted out of messages.');
-        setTimeout(() => router.push('/opt-out-success'), 3000); 
+        setTimeout(() => router.push('/opt-out-success'), 3000);
       } else {
         setMessage(data.error || 'Failed to opt out.');
       }
@@ -75,3 +75,14 @@ export default function OptOutPage() {
     </div>
   );
 }
+
+export default function OptOutPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <OptOutForm />
+    </Suspense>
+  );
+}
+
+// Disable prerendering to prevent build errors
+export const dynamic = 'force-dynamic';
