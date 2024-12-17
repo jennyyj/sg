@@ -3,6 +3,9 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+const baseUrl =
+  process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;
+
 export async function POST(request: Request) {
   try {
     const { jobId, workerName } = await request.json();
@@ -49,7 +52,7 @@ const formatTime = (time: string) => {
 };
 
 
-    const thankYouLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/thank-you/${jobId}`;
+const thankYouLink = `${process.env.FRONTEND_URL || baseUrl}/thank-you/${jobId}`;
 
     // Retrieve phone numbers in the same category
     const phoneNumbers = await prisma.phoneNumber.findMany({
@@ -65,7 +68,7 @@ const claimerPhone = phoneNumbers.find((phone) => phone.name === workerName);
 if (claimerPhone) {
   const formattedDate = formatDate(job.shift?.date || ''); // Ensure date is formatted
   const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
-  const thankYouLink = `${process.env.FRONTEND_URL || '${baseUrl}/thank-you/${jobId}`;
+
 
   await fetch('https://textbelt.com/text', {
     method: 'POST',
