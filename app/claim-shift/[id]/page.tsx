@@ -42,7 +42,7 @@ export default function ClaimJobPage() {
           setJob(jobData.job);
 
           const phoneResponse = await fetch(
-            `/api/phone-numbers?category=${jobData.job.category}`,
+            `/api/public-phone-numbers?category=${jobData.job.category}`,
             {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem('token')}`,
