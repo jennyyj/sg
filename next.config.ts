@@ -4,13 +4,12 @@ import withPWA from 'next-pwa';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-const nextConfig: NextConfig = withPWA({
+export default withPWA({
   pwa: {
-    dest: 'public', // Folder for generated service worker
-    register: true, // Auto-register the service worker
-    skipWaiting: true, // Immediately activate updated service worker
-    disable: !isProduction, // Disable PWA in non-production environments
+    dest: 'public',
+    disable: !isProduction,
+  },
+  experimental: {
+    forceSwcTransforms: true, // Fix Prisma SWC issue
   },
 });
-
-export default nextConfig;
