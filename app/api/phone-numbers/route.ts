@@ -31,19 +31,31 @@ async function getUserId(request: Request): Promise<string | null> {
 }
 
 // GET: Fetch all phone numbers for the authenticated user
+// GET: Fetch phone numbers for the authenticated user (optionally filtered by category)
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const category = searchParams.get('category');
-
-    if (!category) {
-      return NextResponse.json({ error: 'Category is required' }, { status: 400 });
+    const userId = await getUserId(request);
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch phone numbers based on the provided category (no auth required)
-    const phoneNumbers = await prisma.phoneNumber.findMany({
-      where: { categories: { has: category } },
-    });
+    // Parse optional 'category' query parameter
+    const url = new URL(request.url);
+    const category = url.searchParams.get('category');
+
+    let phoneNumbers;
+
+    if (category) {
+      // Fetch phone numbers filtered by category
+      phoneNumbers = await prisma.phoneNumber.findMany({
+        where: { userId, categories: { has: category } },
+      });
+    } else {
+      // Fetch all phone numbers
+      phoneNumbers = await prisma.phoneNumber.findMany({
+        where: { userId },
+      });
+    }
 
     return NextResponse.json({ phoneNumbers });
   } catch (error) {
@@ -54,6 +66,8 @@ export async function GET(request: Request) {
     );
   }
 }
+
+
 
 // POST: Add a new phone number
 export async function POST(request: Request) {
