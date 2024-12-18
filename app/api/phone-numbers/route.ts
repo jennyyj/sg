@@ -17,20 +17,20 @@ interface JwtPayloadWithId extends jwt.JwtPayload {
 
 async function getUserId(request: Request): Promise<string | null> {
   const token = request.headers.get('authorization')?.split(' ')[1];
+  console.log("Token received:", token);
+
   if (!token) return null;
 
   try {
-    const decodedToken = jwt.verify(
-      token,
-      process.env.JWT_SECRET!
-    ) as JwtPayloadWithId;
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayloadWithId;
+    console.log("Decoded token:", decodedToken);
     return decodedToken.id || null;
-  } catch {
+  } catch (error) {
+    console.error("Token verification error:", error);
     return null;
   }
 }
 
-// GET: Fetch all phone numbers for the authenticated user
 // GET: Fetch phone numbers for the authenticated user (optionally filtered by category)
 export async function GET(request: Request) {
   try {
@@ -50,12 +50,13 @@ export async function GET(request: Request) {
       phoneNumbers = await prisma.phoneNumber.findMany({
         where: { userId, categories: { has: category } },
       });
+      console.log("Phone numbers fetched:", phoneNumbers);
     } else {
       // Fetch all phone numbers
       phoneNumbers = await prisma.phoneNumber.findMany({
         where: { userId },
       });
-    }
+    }   
 
     return NextResponse.json({ phoneNumbers });
   } catch (error) {
