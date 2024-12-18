@@ -151,38 +151,21 @@ export default function ClaimJobPage() {
             className="w-full px-4 py-3 rounded-full border-2 border-[#3a73c1] text-center text-[#52ace4] placeholder-[#52ace4] focus:outline-none"
           />
 
-<div
-  style={{
-    maxHeight: '300px', // Limit height to ensure scroll on overflow
-    overflowY: 'auto', // Add vertical scroll when content overflows
-    border: '1px solid #e0e0e0', // Add a visible border for debugging
-    padding: '0.5rem', // Add spacing
-  }}
->
-  {filteredNumbers.map((phone) => (
-    <button
-      key={phone.id}
-      onClick={() => setSelectedName(phone.name)}
-      style={{
-        display: 'block', // Ensure each button takes up a full line
-        width: '100%', // Full width
-        padding: '0.75rem',
-        marginBottom: '0.5rem',
-        borderRadius: '9999px', // Rounded buttons
-        border: `2px solid ${
-          selectedName === phone.name ? '#52ace4' : '#3a73c1'
-        }`,
-        backgroundColor: selectedName === phone.name ? '#f0f8ff' : '#fff',
-        color: selectedName === phone.name ? '#52ace4' : '#3a73c1',
-        fontWeight: 'bold',
-        textAlign: 'center',
-      }}
-    >
-      {phone.name} ({phone.number})
-    </button>
-  ))}
-</div>
-
+          <div className="space-y-2">
+            {filteredNumbers.map((phone) => (
+              <button
+                key={phone.id}
+                onClick={() => setSelectedName(phone.name)}
+                className={`w-full px-4 py-2 rounded-full ${
+                  selectedName === phone.name
+                    ? 'border-2 border-[#52ace4] bg-[#f0f8ff] text-[#52ace4]'
+                    : 'border-2 border-[#3a73c1] text-[#3a73c1]'
+                } font-bold hover:bg-[#f0f8ff] transition-colors`}
+              >
+                {phone.name} ({phone.number})
+              </button>
+            ))}
+          </div>
 
           <button
             className="w-full px-4 py-3 rounded-full border-2 border-[#3a73c1] text-[#3a73c1] font-bold hover:bg-[#f0f8ff] transition-colors"
