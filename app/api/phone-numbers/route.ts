@@ -33,19 +33,25 @@ async function getUserId(request: Request): Promise<string | null> {
 // GET: Fetch all phone numbers for the authenticated user
 export async function GET(request: Request) {
   try {
-    const userId = await getUserId(request);
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category');
+
+    if (!category) {
+      return NextResponse.json({ error: 'Category is required' }, { status: 400 });
     }
 
+    // Fetch phone numbers based on the provided category (no auth required)
     const phoneNumbers = await prisma.phoneNumber.findMany({
-      where: { userId },
+      where: { categories: { has: category } },
     });
 
     return NextResponse.json({ phoneNumbers });
   } catch (error) {
     console.error('Error fetching phone numbers:', error);
-    return NextResponse.json({ error: 'Failed to fetch phone numbers' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch phone numbers' },
+      { status: 500 }
+    );
   }
 }
 
