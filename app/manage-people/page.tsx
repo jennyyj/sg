@@ -353,7 +353,9 @@ export default function ManageEmployeesPage() {
           </h2>
           <div className="space-y-4">
             {phoneNumbers
-              .filter((phone) => phone.categories.includes(filteredCategory))
+              .filter((phone) =>
+                phone.categories.some((cat) => cat.toLowerCase() === filteredCategory.toLowerCase())
+              )              
               .map((phone) => (
                 <div
                   key={phone.id}
