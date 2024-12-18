@@ -12,7 +12,7 @@ export default function LoadingScreen() {
 
   return loading ? (
     <div className="fixed inset-0 flex items-center justify-center bg-[#3a73c1]">
-      <img src="/icons/icon-512x512.png" alt="Logo" className="w-32 h-32" />
+      <img src="./icons/small.PNG" alt="Logo" className="w-32 h-32" />
     </div>
   ) : null;
 }
