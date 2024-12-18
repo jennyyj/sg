@@ -4,8 +4,14 @@ const withPWA = require("next-pwa")({
   skipWaiting: true, // Update immediately
 });
 
-module.exports = withPWA({
-  experimental: {
-    appDir: true,
+module.exports = {
+  poweredByHeader: false, // Disable "X-Powered-By" header
+  productionBrowserSourceMaps: false, // Reduce source map generation
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.alias['@sentry/react'] = false; // Example: Omit certain libraries
+    }
+    return config;
   },
-});
+};
+

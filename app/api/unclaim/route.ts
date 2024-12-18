@@ -4,7 +4,6 @@ import { PrismaClient } from '@prisma/client';
 const prisma =
   (global as any).prisma ||
   new PrismaClient({
-    log: ['query'], // Optional: Logs SQL queries
   });
 
 if (process.env.NODE_ENV !== 'production') {
