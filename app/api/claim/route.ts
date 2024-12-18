@@ -12,7 +12,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Use dynamic base URL based on environment
-const baseUrl = process.env.FRONTEND_URL || `https://${process.env.VERCEL_URL}`;
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;
 
 export async function POST(request: Request) {
   try {

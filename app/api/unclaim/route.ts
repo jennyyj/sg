@@ -11,7 +11,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Use dynamic base URL based on environment
-const baseUrl = process.env.FRONTEND_URL || `https://${process.env.VERCEL_URL}`;
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;
 
 export async function POST(request: Request) {
   try {
@@ -65,7 +65,7 @@ const formatTime = (time: string) => {
     const smsPromises = phoneNumbers.map(async (phone) => {
       const formattedDate = formatDate(job.shift?.date || ''); // Ensure date is formatted
       const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
-      const claimLink = `${process.env.FRONTEND_URL || baseUrl}/claim-shift/${job.id}`;
+      const claimLink = `${process.env.NEXT_PUBLIC_BASE_URL || baseUrl}/claim-shift/${job.id}`;
     
       const message = `The job for ${job.businessName} on ${formattedDate} from ${formattedTime} is now unclaimed and available. Claim it here: ${claimLink}`;
     
