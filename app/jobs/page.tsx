@@ -117,18 +117,18 @@ export default function PostJobPage() {
 
   const handleShiftTypeChange = (type: string) => {
     const selectedShift = predefinedShifts[type.toLowerCase() as keyof ShiftTimes] || { start: '', end: '' };
-
+  
     setJobData({
       ...jobData,
       shift: {
         ...jobData.shift,
-        type,
+        type: type as JobData['shift']['type'], // Explicit assertion
         startTime: selectedShift.start,
         endTime: selectedShift.end,
       },
     });
   };
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
