@@ -1,6 +1,8 @@
 import { Inter } from 'next/font/google';
 import './globals.css';
 import ClientLayout from './components/layout/ClientLayout';
+import LoadingScreen from './components/LoadingScreen'; 
+import { Suspense } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -17,16 +19,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Link to the PWA manifest */}
         <link rel="manifest" href="/manifest.json" />
-        
-        {/* App icons */}
-        <link rel="icon" href="/icons/icon-192x192.png" sizes="192x192" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        <meta name="theme-color" content="#3a73c1" />
+        <link rel="icon" href="/icons/C.png" sizes="192x192" />
+        <link rel="apple-touch-icon" href="/icons/C.png" />
+        <meta name="theme-color" content="#ffffff" />
       </head>
       <body className={inter.className}>
-        <ClientLayout>{children}</ClientLayout>
+        {/* Use Suspense to integrate the loading screen */}
+        <Suspense fallback={<LoadingScreen />}>
+          <ClientLayout>{children}</ClientLayout>
+        </Suspense>
       </body>
     </html>
   );
