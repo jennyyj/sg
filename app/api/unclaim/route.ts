@@ -63,7 +63,13 @@ const formatTime = (time: string) => {
 
     // Send SMS to relevant phone numbers
     const smsPromises = phoneNumbers.map(async (phone) => {
-      const formattedDate = formatDate(job.shift?.date || ''); // Ensure date is formatted
+      const formattedDate = new Date(job.shift?.date || '').toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'UTC', // Ensure consistent formatting
+      });      
       const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
       const claimLink = `${process.env.NEXT_PUBLIC_BASE_URL || baseUrl}/claim-shift/${job.id}`;
     

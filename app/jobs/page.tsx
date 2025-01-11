@@ -101,9 +101,7 @@ export default function PostJobPage() {
   const handleDateChange = (value: Date | Date[] | null) => {
     if (value instanceof Date) {
       const normalizedDate = new Date(
-        value.getFullYear(),
-        value.getMonth(),
-        value.getDate()
+        Date.UTC(value.getFullYear(), value.getMonth(), value.getDate())
       );
       setJobData({
         ...jobData,

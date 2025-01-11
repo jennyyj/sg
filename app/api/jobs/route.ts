@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       shift: {
         create: {
           type: shift.type,
-          date: shift.date ? new Date(shift.date) : new Date(),
+          date: new Date(`${shift.date}T00:00:00Z`),
           startTime: shift.startTime,
           endTime: shift.endTime,
         },

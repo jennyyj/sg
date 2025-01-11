@@ -162,12 +162,12 @@ export default function StatusPage() {
 )}
 
       <h2 className="text-xl font-bold text-[#3a73c1] mb-4">Past Shift Information</h2>
-      <div className="flex space-x-4 mb-4 justify-center">
+      <div className="flex flex-wrap space-x-4 mb-4 justify-center">
   {['ALL', 'CLAIMED', 'UNCLAIMED', 'REMOVED'].map((type) => (
     <button
       key={type}
       onClick={() => handleFilterChange(type)}
-      className={`px-4 py-2 rounded-full ${
+      className={`px-4 py-2 rounded-full w-auto flex-grow  ${
         filter === type
           ? 'border-2 border-[#3a73c1] bg-[#f0f8ff] text-[#3a73c1]'
           : 'border-2 border-[#3a73c1] text-[#3a73c1]'

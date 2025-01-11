@@ -73,7 +73,13 @@ export async function POST(request: Request) {
     const claimerPhone = phoneNumbers.find((phone) => phone.name === workerName);
 
     if (claimerPhone) {
-      const formattedDate = formatDate(job.shift?.date || '');
+      const formattedDate = new Date(job.shift?.date || '').toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'UTC', // Ensure consistent formatting
+      });      
       const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
 
       await fetch('https://textbelt.com/text', {
