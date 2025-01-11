@@ -1,7 +1,7 @@
 ## Learn More
 
 This is ShiftGrab's current beta version that is being deployed through vercel as a PWA!
-to reach it go to https://jennyyj.github.io/ShiftGrab/index.html and click on the try version now! 
+to reach it go to www.shiftgrab.io and click on the try version now! 
 
 
 
