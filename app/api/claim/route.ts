@@ -49,11 +49,11 @@ export async function POST(request: Request) {
     });
 
     if (claimerPhone) {
-      const reminderMessage = `Reminder: You have a shift at ${job.businessName} on ${job.shift.date} from ${job.shift.startTime} - ${job.shift.endTime}.`;
+      const reminderMessage = `ShiftGrab Reminder: You have a shift at ${job.businessName} on ${job.shift.date} from ${job.shift.startTime} - ${job.shift.endTime}.`;
 
       await prisma.reminder.create({
         data: {
-          jobId,
+          jobId: job.id,
           phoneNumber: claimerPhone.number,
           message: reminderMessage,
           sendAt: reminderTime,
