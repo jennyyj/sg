@@ -69,11 +69,13 @@ model UserPreference {
 
 model Reminder {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  jobId       String   @db.ObjectId
+  jobId       String
   phoneNumber String
   message     String
   sendAt      DateTime
   sent        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum ShiftType {
