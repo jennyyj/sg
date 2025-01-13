@@ -69,7 +69,7 @@ model UserPreference {
 
 model Reminder {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  jobId       String
+  jobId       String  @db.ObjectId
   phoneNumber String
   message     String
   sendAt      DateTime
