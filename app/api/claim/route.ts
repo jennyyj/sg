@@ -51,48 +51,55 @@ export async function POST(request: Request) {
       where: { name: workerName },
     });
 
-    if (claimerPhone) {
-      // Create a reminder
-      const reminderMessage = `Reminder: You have a shift at ${job.businessName} on ${job.shift.date} from ${job.shift.startTime} - ${job.shift.endTime}.`;
-      await prisma.reminder.create({
-        data: {
-          jobId,
-          phoneNumber: claimerPhone.number,
-          message: reminderMessage,
-          sendAt: reminderTime,
-          sent: false,
-        },
-      });
-
-      console.log(`Reminder scheduled for ${claimerPhone.number} at ${reminderTime}`);
-
-      // Send personalized SMS to the claimer
-      const formattedDate = new Date(job.shift?.date || '').toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        timeZone: 'UTC', // Ensure consistent formatting
-      });
-      const formatTime = (time: string) => {
-        const [hours, minutes] = time.split(':').map(Number);
-        const period = hours >= 12 ? 'PM' : 'AM';
-        const formattedHours = hours % 12 || 12; // Convert to 12-hour format
-        return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-      };
-      const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
-      const thankYouLink = `${baseUrl}/thank-you/${jobId}`;
-
-      await fetch('https://textbelt.com/text', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: claimerPhone.number,
-          message: `Thank you for claiming the job for ${job.businessName} on ${formattedDate} from ${formattedTime}. Need to unclaim? Unclaim the shift here: ${thankYouLink}`,
-          key: process.env.TEXTBELT_API_KEY,
-        }),
-      });
+    if (!claimerPhone) {
+      return NextResponse.json(
+        { error: `Phone number not found for worker: ${workerName}` },
+        { status: 404 }
+      );
     }
+
+    // Create a reminder
+    const reminderMessage = `Reminder: You have a shift at ${job.businessName} on ${job.shift.date} from ${job.shift.startTime} - ${job.shift.endTime}.`;
+    await prisma.reminder.create({
+      data: {
+        jobId,
+        phoneNumber: claimerPhone.number,
+        message: reminderMessage,
+        sendAt: reminderTime,
+        sent: false,
+      },
+    });
+
+    console.log(`Reminder scheduled for ${claimerPhone.number} at ${reminderTime}`);
+
+    // Helper function to format time
+    const formatTime = (time: string) => {
+      const [hours, minutes] = time.split(':').map(Number);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = hours % 12 || 12; // Convert to 12-hour format
+      return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    };
+
+    const formattedDate = new Date(job.shift?.date || '').toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC', // Ensure consistent formatting
+    });
+    const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
+    const thankYouLink = `${baseUrl}/thank-you/${jobId}`;
+
+    // Send personalized SMS to the claimer
+    await fetch('https://textbelt.com/text', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone: claimerPhone.number,
+        message: `Thank you for claiming the job for ${job.businessName} on ${formattedDate} from ${formattedTime}. Need to unclaim? Unclaim the shift here: ${thankYouLink}`,
+        key: process.env.TEXTBELT_API_KEY,
+      }),
+    });
 
     // Retrieve phone numbers in the same category
     const phoneNumbers = await prisma.phoneNumber.findMany({
@@ -105,24 +112,10 @@ export async function POST(request: Request) {
     const othersPromises = phoneNumbers
       .filter((phone) => phone.name !== workerName)
       .map(async (phone) => {
-        const formatDate = (date: string) => {
-          return new Date(date).toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          });
-        };
-
-        const formattedDate = formatDate(job.shift?.date || '');
-        const formatTime = (time: string) => {
-          const [hours, minutes] = time.split(':').map(Number);
-          const period = hours >= 12 ? 'PM' : 'AM';
-          const formattedHours = hours % 12 || 12; // Convert to 12-hour format
-          return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-        };
-        const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
-        const message = `${workerName} has claimed the shift for ${job.businessName} on ${formattedDate} from ${formattedTime}.`;
+        const formattedTimeForOthers = `${formatTime(job.shift?.startTime || '')} - ${formatTime(
+          job.shift?.endTime || ''
+        )}`;
+        const message = `${workerName} has claimed the shift for ${job.businessName} on ${formattedDate} from ${formattedTimeForOthers}.`;
 
         await fetch('https://textbelt.com/text', {
           method: 'POST',
