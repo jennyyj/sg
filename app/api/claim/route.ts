@@ -51,17 +51,21 @@ export async function POST(request: Request) {
     if (claimerPhone) {
       const reminderMessage = `ShiftGrab Reminder: You have a shift at ${job.businessName} on ${job.shift.date} from ${job.shift.startTime} - ${job.shift.endTime}.`;
 
-      await prisma.reminder.create({
-        data: {
-          jobId: job.id,
-          phoneNumber: claimerPhone.number,
-          message: reminderMessage,
-          sendAt: reminderTime,
-          sent: false,
-        },
-      });
+      const reminderData = {
+        jobId: job.id,
+        phoneNumber: claimerPhone.number,
+        message: reminderMessage,
+        sendAt: reminderTime,
+        sent: false,
+      };
+
+      console.log('Reminder Data:', reminderData);
+
+      await prisma.reminder.create({ data: reminderData });
 
       console.log(`Reminder scheduled for ${claimerPhone.number} at ${reminderTime}`);
+    } else {
+      console.error('Claimer phone not found for workerName:', workerName);
     }
 
     // Helper function to format date
