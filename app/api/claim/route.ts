@@ -9,12 +9,14 @@ if (process.env.NODE_ENV !== 'production') {
   (global as any).prisma = prisma;
 }
 
+// Use dynamic base URL based on environment
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;
 
 export async function POST(request: Request) {
   try {
     const { jobId, workerName } = await request.json();
 
+    // Find the job with shift details
     const job = await prisma.job.findUnique({
       where: { id: jobId },
       include: { shift: true },
@@ -28,6 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Job already claimed' }, { status: 400 });
     }
 
+    // Update the job status to CLAIMED
     const updatedJob = await prisma.job.update({
       where: { id: jobId },
       data: {
@@ -37,50 +40,73 @@ export async function POST(request: Request) {
       },
     });
 
+    // Add reminder functionality
+    const shiftStart = new Date(`${job.shift.date}T${job.shift.startTime}`);
+    const reminderTime = new Date(shiftStart.getTime() - 60 * 60 * 1000); // 1 hour before the shift starts
+
     const claimerPhone = await prisma.phoneNumber.findFirst({
       where: { name: workerName },
     });
 
     if (claimerPhone) {
-      const shiftStart = new Date(`${job.shift.date}T${job.shift.startTime}`);
-      const reminderTime = new Date(shiftStart.getTime() - 60 * 60 * 1000);
+      const reminderMessage = `ShiftGrab Reminder: You have a shift at ${job.businessName} on ${job.shift.date} from ${job.shift.startTime} - ${job.shift.endTime}.`;
 
       const reminderData = {
         jobId: job.id,
         phoneNumber: claimerPhone.number,
-        message: `ShiftGrab Reminder: You have a shift at ${job.businessName} on ${job.shift.date} from ${job.shift.startTime} - ${job.shift.endTime}.`,
+        message: reminderMessage,
         sendAt: reminderTime,
         sent: false,
       };
 
-      try {
-        await prisma.reminder.create({ data: reminderData });
-        console.log(`Reminder scheduled for ${claimerPhone.number} at ${reminderTime}`);
-      } catch (error) {
-        console.error('Prisma Reminder Create Error:', error.message, error.stack);
-      }
+      console.log('Reminder Data:', reminderData);
+
+      await prisma.reminder.create({ data: reminderData });
+
+      console.log(`Reminder scheduled for ${claimerPhone.number} at ${reminderTime}`);
     } else {
-      console.error('No phone number found for workerName:', workerName);
+      console.error('Claimer phone not found for workerName:', workerName);
     }
 
+    // Helper function to format date
+    const formatDate = (date: string) => {
+      return new Date(date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    };
+
+    // Helper function to format time
+    const formatTime = (time: string) => {
+      const [hours, minutes] = time.split(':').map(Number);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = hours % 12 || 12; // Convert to 12-hour format
+      return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    };
+
     const thankYouLink = `${baseUrl}/thank-you/${jobId}`;
+
+    // Retrieve phone numbers in the same category
     const phoneNumbers = await prisma.phoneNumber.findMany({
       where: {
         categories: { has: job.category },
       },
     });
 
+    // Send personalized SMS to the claimer
     const claimerPhoneForSMS = phoneNumbers.find((phone) => phone.name === workerName);
 
     if (claimerPhoneForSMS) {
-      const formattedDate = new Date(job.shift.date || '').toLocaleDateString('en-US', {
+      const formattedDate = new Date(job.shift?.date || '').toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        timeZone: 'UTC',
+        timeZone: 'UTC', // Ensure consistent formatting
       });
-      const formattedTime = `${job.shift.startTime} - ${job.shift.endTime}`;
+      const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
 
       await fetch('https://textbelt.com/text', {
         method: 'POST',
@@ -93,11 +119,14 @@ export async function POST(request: Request) {
       });
     }
 
+    // Send general notification to other phone numbers in the category
     const othersPromises = phoneNumbers
       .filter((phone) => phone.name !== workerName)
       .map(async (phone) => {
-        const formattedDate = new Date(job.shift.date || '').toLocaleDateString('en-US');
-        const message = `${workerName} has claimed the shift for ${job.businessName} on ${formattedDate}.`;
+        const formattedDate = formatDate(job.shift?.date || '');
+        const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
+
+        const message = `${workerName} has claimed the shift for ${job.businessName} on ${formattedDate} from ${formattedTime}.`;
 
         await fetch('https://textbelt.com/text', {
           method: 'POST',
@@ -117,7 +146,7 @@ export async function POST(request: Request) {
       job: updatedJob,
     });
   } catch (error) {
-    console.error('Error claiming job:', error.message, error.stack);
+    console.error('Error claiming job:', error);
     return NextResponse.json({ error: 'Failed to claim job' }, { status: 500 });
   }
 }
