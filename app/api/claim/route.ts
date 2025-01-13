@@ -65,47 +65,23 @@ export async function POST(request: Request) {
       });
 
       console.log(`Reminder scheduled for ${claimerPhone.number} at ${reminderTime}`);
-    }
 
-    // Helper function to format date
-    const formatDate = (date: string) => {
-      return new Date(date).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    };
-
-    // Helper function to format time
-    const formatTime = (time: string) => {
-      const [hours, minutes] = time.split(':').map(Number);
-      const period = hours >= 12 ? 'PM' : 'AM';
-      const formattedHours = hours % 12 || 12; // Convert to 12-hour format
-      return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-    };
-
-    const thankYouLink = `${baseUrl}/thank-you/${jobId}`;
-
-    // Retrieve phone numbers in the same category
-    const phoneNumbers = await prisma.phoneNumber.findMany({
-      where: {
-        categories: { has: job.category },
-      },
-    });
-
-    // Send personalized SMS to the claimer
-    const claimerPhone = phoneNumbers.find((phone) => phone.name === workerName);
-
-    if (claimerPhone) {
+      // Send personalized SMS to the claimer
       const formattedDate = new Date(job.shift?.date || '').toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         timeZone: 'UTC', // Ensure consistent formatting
-      });      
+      });
+      const formatTime = (time: string) => {
+        const [hours, minutes] = time.split(':').map(Number);
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const formattedHours = hours % 12 || 12; // Convert to 12-hour format
+        return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+      };
       const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
+      const thankYouLink = `${baseUrl}/thank-you/${jobId}`;
 
       await fetch('https://textbelt.com/text', {
         method: 'POST',
@@ -118,13 +94,34 @@ export async function POST(request: Request) {
       });
     }
 
+    // Retrieve phone numbers in the same category
+    const phoneNumbers = await prisma.phoneNumber.findMany({
+      where: {
+        categories: { has: job.category },
+      },
+    });
+
     // Send general notification to other phone numbers in the category
     const othersPromises = phoneNumbers
       .filter((phone) => phone.name !== workerName)
       .map(async (phone) => {
-        const formattedDate = formatDate(job.shift?.date || '');
-        const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
+        const formatDate = (date: string) => {
+          return new Date(date).toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+        };
 
+        const formattedDate = formatDate(job.shift?.date || '');
+        const formatTime = (time: string) => {
+          const [hours, minutes] = time.split(':').map(Number);
+          const period = hours >= 12 ? 'PM' : 'AM';
+          const formattedHours = hours % 12 || 12; // Convert to 12-hour format
+          return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+        };
+        const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
         const message = `${workerName} has claimed the shift for ${job.businessName} on ${formattedDate} from ${formattedTime}.`;
 
         await fetch('https://textbelt.com/text', {
