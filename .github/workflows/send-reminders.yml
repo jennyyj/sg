@@ -1,0 +1,35 @@
+name: Send Reminders
+
+on:
+  schedule:
+    # Runs every 5 minutes
+    - cron: "*/5 * * * *"
+
+  workflow_dispatch: # Allows manual triggering of the workflow
+    inputs: {}
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Node.js
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18 # Use your Node.js version
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: npm install
+
+    # Step 4: Run the reminder script
+    - name: Run Send Reminders Script
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        TEXTBELT_API_KEY: ${{ secrets.TEXTBELT_API_KEY }}
+      run: node scripts/send-reminders.ts

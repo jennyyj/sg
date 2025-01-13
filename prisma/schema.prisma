@@ -67,6 +67,15 @@ model UserPreference {
   customCategories Json? 
 }
 
+model Reminder {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  jobId       String   @db.ObjectId
+  phoneNumber String
+  message     String
+  sendAt      DateTime
+  sent        Boolean  @default(false)
+}
+
 enum ShiftType {
   MORNING
   MIDDAY

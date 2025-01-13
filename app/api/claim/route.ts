@@ -42,6 +42,31 @@ export async function POST(request: Request) {
       },
     });
 
+    // Calculate reminder time (1 hour before the shift starts)
+    const shiftStart = new Date(`${job.shift.date}T${job.shift.startTime}`);
+    const reminderTime = new Date(shiftStart.getTime() - 60 * 60 * 1000);
+
+    // Get claimer's phone number
+    const claimerPhone = await prisma.phoneNumber.findFirst({
+      where: { name: workerName },
+    });
+
+    if (claimerPhone) {
+      // Create a reminder
+      const reminderMessage = `Reminder: You have a shift at ${job.businessName} on ${job.shift.date} from ${job.shift.startTime} - ${job.shift.endTime}.`;
+      await prisma.reminder.create({
+        data: {
+          jobId,
+          phoneNumber: claimerPhone.number,
+          message: reminderMessage,
+          sendAt: reminderTime,
+          sent: false,
+        },
+      });
+
+      console.log(`Reminder scheduled for ${claimerPhone.number} at ${reminderTime}`);
+    }
+
     // Helper function to format date
     const formatDate = (date: string) => {
       return new Date(date).toLocaleDateString('en-US', {
