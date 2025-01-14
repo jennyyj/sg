@@ -9,12 +9,12 @@ if (process.env.NODE_ENV !== 'production') {
   (global as any).prisma = prisma;
 }
 
-// Use dynamic base URL based on environment
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;
 
 export async function POST(request: Request) {
   try {
     const { jobId, workerName } = await request.json();
+    console.log("Received request with jobId:", jobId, "and workerName:", workerName);
 
     // Find the job with shift details
     const job = await prisma.job.findUnique({
@@ -23,10 +23,12 @@ export async function POST(request: Request) {
     });
 
     if (!job) {
+      console.error("Job not found for jobId:", jobId);
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
     if (job.claimedBy) {
+      console.error("Job already claimed by:", job.claimedBy);
       return NextResponse.json({ error: 'Job already claimed' }, { status: 400 });
     }
 
@@ -39,11 +41,13 @@ export async function POST(request: Request) {
         status: 'CLAIMED',
       },
     });
+    console.log("Updated job:", updatedJob);
 
     // Reminder functionality
     const claimerPhone = await prisma.phoneNumber.findFirst({
       where: { name: workerName },
     });
+    console.log("Claimer phone:", claimerPhone);
 
     if (claimerPhone) {
       const shiftStart = new Date(`${job.shift.date}T${job.shift.startTime}`);
@@ -57,17 +61,19 @@ export async function POST(request: Request) {
         sent: false,
       };
 
-      console.log('Reminder Data:', reminderData);
+      console.log("Reminder data to be created:", reminderData);
 
-      // Create the reminder in the database
-      await prisma.reminder.create({ data: reminderData });
-
-      console.log(`Reminder scheduled for ${claimerPhone.number} at ${reminderTime}`);
+      try {
+        await prisma.reminder.create({ data: reminderData });
+        console.log(`Reminder scheduled for ${claimerPhone.number} at ${reminderTime}`);
+      } catch (error) {
+        console.error("Error creating reminder:", error);
+      }
     } else {
-      console.error('No phone number found for workerName:', workerName);
+      console.error("No phone number found for workerName:", workerName);
     }
 
-    // Helper function to format date
+    // Helper functions for date and time formatting
     const formatDate = (date: string) => {
       return new Date(date).toLocaleDateString('en-US', {
         weekday: 'long',
@@ -77,7 +83,6 @@ export async function POST(request: Request) {
       });
     };
 
-    // Helper function to format time
     const formatTime = (time: string) => {
       const [hours, minutes] = time.split(':').map(Number);
       const period = hours >= 12 ? 'PM' : 'AM';
@@ -149,3 +154,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to claim job' }, { status: 500 });
   }
 }
+
