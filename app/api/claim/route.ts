@@ -51,17 +51,25 @@ export async function POST(request: Request) {
 
     if (claimerPhone) {
       const shiftStart = new Date(`${job.shift.date}T${job.shift.startTime}`);
+      if (isNaN(shiftStart.getTime())) {
+        throw new Error('Invalid shift date or time. Cannot schedule reminder.');
+      }
       const reminderTime = new Date(shiftStart.getTime() - 60 * 60 * 1000); // 1 hour before the shift starts
+
+// Ensure reminderTime is valid
+      if (isNaN(reminderTime.getTime())) {
+        throw new Error('Invalid reminder time. Cannot schedule reminder.');
+}
 
       const reminderData = {
         jobId: job.id,
         phoneNumber: claimerPhone.number,
-        message: `ShiftGrab Reminder: You have a shift at ${job.businessName} on ${job.shift.date} from ${job.shift.startTime} - ${job.shift.endTime}.`,
+        message: `ShiftGrab Reminder: You have a shift at ${job.businessName} on ${shiftStart.toDateString()} from ${job.shift.startTime} - ${job.shift.endTime}.`,
         sendAt: reminderTime,
         sent: false,
       };
 
-      console.log("Reminder data to be created:", reminderData);
+      console.log('Reminder Data:', reminderData);
 
       try {
         await prisma.reminder.create({ data: reminderData });
