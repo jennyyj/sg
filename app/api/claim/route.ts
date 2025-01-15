@@ -11,6 +11,13 @@ if (process.env.NODE_ENV !== 'production') {
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;
 
+function formatTimeTo12Hour(time) {
+  const [hours, minutes] = time.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const formattedHours = hours % 12 || 12; // Convert to 12-hour format
+  return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
+
 export async function POST(request: Request) {
   try {
     const { jobId, workerName } = await request.json();
@@ -88,10 +95,19 @@ export async function POST(request: Request) {
     });
 
     if (claimerPhone) {
+      const formattedStartTime = formatTimeTo12Hour(job.shift.startTime);
+      const formattedEndTime = formatTimeTo12Hour(job.shift.endTime);
+      const formattedDate = shiftStart.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
       const reminderData = {
         jobId: job.id,
         phoneNumber: claimerPhone.number,
-        message: `ShiftGrab Reminder: You have a shift at ${job.businessName} on ${shiftStart.toDateString()} from ${job.shift.startTime} - ${job.shift.endTime}.`,
+        message: `ShiftGrab Reminder: You have a shift at ${job.businessName} on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime}.`,
         sendAt: reminderTime,
         sent: false,
       };
@@ -104,9 +120,8 @@ export async function POST(request: Request) {
       }
 
       // Send thank-you text with "Unclaim" link
-      const formattedShiftDate = shiftStart.toDateString();
       const thankYouLink = `${baseUrl}/thank-you/${jobId}`;
-      const thankYouMessage = `Thank you for claiming the shift at ${job.businessName} on ${formattedShiftDate} from ${job.shift.startTime} to ${job.shift.endTime}. Plans changed? Unclaim here: ${thankYouLink}`;
+      const thankYouMessage = `Thank you for claiming the shift at ${job.businessName} on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime}. Plans changed? Unclaim here: ${thankYouLink}`;
 
       await fetch('https://textbelt.com/text', {
         method: 'POST',
@@ -132,7 +147,16 @@ export async function POST(request: Request) {
     const notifyOthersPromises = phoneNumbers
       .filter((phone) => phone.name !== workerName)
       .map(async (phone) => {
-        const notificationMessage = `${workerName} has claimed the shift at ${job.businessName} on ${shiftStart.toDateString()} from ${job.shift.startTime} to ${job.shift.endTime}.`;
+        const formattedStartTime = formatTimeTo12Hour(job.shift.startTime);
+        const formattedEndTime = formatTimeTo12Hour(job.shift.endTime);
+        const formattedDate = shiftStart.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        });
+
+        const notificationMessage = `${workerName} has claimed the shift at ${job.businessName} on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime}.`;
 
         await fetch('https://textbelt.com/text', {
           method: 'POST',
