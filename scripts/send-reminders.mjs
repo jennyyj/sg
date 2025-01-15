@@ -7,7 +7,7 @@ const sendReminders = async () => {
   try {
     const now = new Date();
 
-    // Find unsent reminders due for sending
+    // Fetch unsent reminders that are due
     const reminders = await prisma.reminder.findMany({
       where: {
         sent: false,
@@ -46,5 +46,5 @@ const sendReminders = async () => {
   }
 };
 
-// Run the function
+// Run the script
 sendReminders();
