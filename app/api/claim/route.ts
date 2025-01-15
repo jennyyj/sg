@@ -105,8 +105,8 @@ export async function POST(request: Request) {
 
       // Send thank-you text with "Unclaim" link
       const formattedShiftDate = shiftStart.toDateString();
-      const unclaimLink = `${baseUrl}/unclaim/${jobId}`;
-      const thankYouMessage = `Thank you for claiming the shift at ${job.businessName} on ${formattedShiftDate} from ${job.shift.startTime} to ${job.shift.endTime}. Plans changed? Unclaim here: ${unclaimLink}`;
+      const thankYouLink = `${baseUrl}/thank-you/${jobId}`;
+      const thankYouMessage = `Thank you for claiming the shift at ${job.businessName} on ${formattedShiftDate} from ${job.shift.startTime} to ${job.shift.endTime}. Plans changed? Unclaim here: ${thankYouLink}`;
 
       await fetch('https://textbelt.com/text', {
         method: 'POST',
