@@ -32,4 +32,4 @@ jobs:
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         TEXTBELT_API_KEY: ${{ secrets.TEXTBELT_API_KEY }}
-      run: node scripts/send-reminders.ts
+      run: node scripts/send-reminders.mjs
