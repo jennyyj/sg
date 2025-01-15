@@ -50,16 +50,20 @@ export async function POST(request: Request) {
     console.log("Claimer phone:", claimerPhone);
 
     if (claimerPhone) {
+      // Validate shift details
+      if (!job.shift || !job.shift.date || !job.shift.startTime || !job.shift.endTime) {
+        throw new Error('Incomplete shift details. Cannot schedule reminder.');
+      }
+
       const shiftStart = new Date(`${job.shift.date}T${job.shift.startTime}`);
       if (isNaN(shiftStart.getTime())) {
         throw new Error('Invalid shift date or time. Cannot schedule reminder.');
       }
-      const reminderTime = new Date(shiftStart.getTime() - 60 * 60 * 1000); // 1 hour before the shift starts
 
-// Ensure reminderTime is valid
+      const reminderTime = new Date(shiftStart.getTime() - 60 * 60 * 1000); // 1 hour before the shift starts
       if (isNaN(reminderTime.getTime())) {
         throw new Error('Invalid reminder time. Cannot schedule reminder.');
-}
+      }
 
       const reminderData = {
         jobId: job.id,
@@ -116,7 +120,7 @@ export async function POST(request: Request) {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        timeZone: 'UTC', // Ensure consistent formatting
+        timeZone: 'UTC',
       });
       const formattedTime = `${formatTime(job.shift?.startTime || '')} - ${formatTime(job.shift?.endTime || '')}`;
 
